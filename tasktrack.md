@@ -4,14 +4,6 @@
 
 ## IN PROGRESS
 
-*   [ ] **4.4:** Tạo route `/tasks/<int:task_id>/results` (GET).
-*   [ ] **4.5:** Implement logic route `/tasks/<int:task_id>/results` (lấy task, parse JSON, render template).
-*   [ ] **4.6:** Tạo template `view_results.html` (hiển thị kết quả dạng bảng, nút download CSV).
-
-## PENDING
-
-### Phase 4: Xây dựng Chức năng Lập lịch & Hiển thị Kết quả/Lỗi
-
 *   [ ] **4.7:** Tạo route `/tasks/<int:task_id>/download_csv` (GET).
 *   [ ] **4.8:** Implement logic route `/tasks/<int:task_id>/download_csv` (lấy task, tạo CSV, trả Response).
 *   [ ] **4.9:** Tạo route `/tasks/<int:task_id>/error` (GET).
@@ -19,6 +11,8 @@
 *   [ ] **4.11:** Tạo template `view_error.html` (hiển thị thông tin lỗi).
 *   [ ] **4.12:** Cập nhật `task_list.html` (thêm nút "Xem kết quả", "Xem lỗi" có điều kiện).
 *   [ ] **4.13:** Kiểm tra chức năng lập lịch, xem kết quả, tải CSV, xem lỗi.
+
+## PENDING
 
 ### Phase 5: Tích hợp Chatbot Hướng dẫn (Rule-Based)
 
@@ -123,8 +117,11 @@
 *   [x] **3.4:** Implement logic route `/tasks/<int:task_id>/run` (thêm job APScheduler chạy ngay, flash, redirect).
 *   [x] **3.5:** Cập nhật `task_list.html` (nút "Chạy ngay", JS spinner/phản hồi).
 
-### [x] Phase 4: Xây dựng Chức năng Lập lịch & Hiển thị Kết quả/Lỗi
+### [ ] Phase 4: Xây dựng Chức năng Lập lịch & Hiển thị Kết quả/Lỗi
 
 *   [x] **4.1:** Cấu hình và khởi động `APScheduler` trong `app/__init__.py`.
 *   [x] **4.2:** Sửa đổi service `create_task` và `update_task` (thêm/sửa job APScheduler dựa trên form).
 *   [x] **4.3:** Sửa đổi service `delete_task` (xóa job APScheduler tương ứng).
+*   [x] **4.4:** Tạo route `/tasks/<int:task_id>/results` (GET).
+*   [x] **4.5:** Implement logic route `/tasks/<int:task_id>/results` (lấy task, parse JSON, render template).
+*   [x] **4.6:** Tạo template `view_results.html` (hiển thị kết quả dạng bảng, nút download CSV).

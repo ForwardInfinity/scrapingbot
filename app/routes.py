@@ -6,6 +6,8 @@ from app.models import Task
 from app import db, scheduler # Import db và scheduler từ app factory
 import json # Cần import json để parse selectors khi edit
 import logging # Import logging
+# Thêm import cần thiết cho route xem kết quả
+from sqlalchemy.orm.exc import NoResultFound
 
 logger = logging.getLogger(__name__) # Khởi tạo logger
 
@@ -196,5 +198,50 @@ def run_task_route(task_id):
         flash(f'Đã xảy ra lỗi khi yêu cầu chạy tác vụ: {e}', 'danger')
 
     return redirect(url_for('main.task_list'))
+
+# === Route để xem kết quả Task ===
+@main.route('/tasks/<int:task_id>/results')
+def view_results(task_id):
+    """Route để hiển thị kết quả của một Task đã hoàn thành."""
+    try:
+        # Lấy task từ DB, hoặc trả 404 nếu không tồn tại
+        task = db.session.get(Task, task_id)
+        if not task:
+            logger.warning(f"Truy cập xem kết quả cho task ID không tồn tại: {task_id}")
+            abort(404) # Không tìm thấy task
+
+        # Kiểm tra trạng thái và kết quả
+        if task.status != 'Completed':
+            logger.info(f"Task ID {task_id} chưa hoàn thành (trạng thái: {task.status}). Không thể xem kết quả.")
+            flash('Tác vụ chưa hoàn thành hoặc đã thất bại. Không có kết quả để hiển thị.', 'warning')
+            return redirect(url_for('main.task_list'))
+
+        if not task.result:
+            logger.info(f"Task ID {task_id} đã hoàn thành nhưng không có dữ liệu kết quả.")
+            flash('Tác vụ đã hoàn thành nhưng không có dữ liệu kết quả được lưu.', 'info')
+            return redirect(url_for('main.task_list'))
+
+        # Parse JSON kết quả
+        try:
+            results_data = json.loads(task.result)
+            logger.debug(f"Đã parse thành công kết quả JSON cho task ID: {task_id}")
+        except json.JSONDecodeError as e:
+            logger.error(f"Lỗi parse JSON kết quả của task ID {task_id}: {e}", exc_info=True)
+            flash(f'Không thể đọc dữ liệu kết quả do lỗi định dạng JSON: {e}', 'danger')
+            return redirect(url_for('main.task_list'))
+
+        # Render template hiển thị kết quả
+        return render_template('view_results.html',
+                               title=f'Kết quả Tác vụ: {task.name}',
+                               task=task,
+                               results_data=results_data)
+
+    except NoResultFound: # Mặc dù get() không raise lỗi này, để đây phòng trường hợp thay đổi logic query
+        logger.warning(f"Truy cập xem kết quả cho task ID không tồn tại: {task_id}")
+        abort(404)
+    except Exception as e:
+        logger.error(f"Lỗi không xác định khi xem kết quả task ID {task_id}: {e}", exc_info=True)
+        flash('Đã xảy ra lỗi không mong muốn khi cố gắng hiển thị kết quả.', 'danger')
+        return redirect(url_for('main.task_list'))
 
 # Các route khác sẽ được thêm vào đây...

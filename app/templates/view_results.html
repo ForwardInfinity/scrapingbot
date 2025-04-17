@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">{{ title }}</h1>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            Thông tin Tác vụ
+        </div>
+        <div class="card-body">
+            <p><strong>ID:</strong> {{ task.id }}</p>
+            <p><strong>Tên tác vụ:</strong> {{ task.name }}</p>
+            <p><strong>URL:</strong> <a href="{{ task.url }}" target="_blank">{{ task.url }}</a></p>
+            <p><strong>Trạng thái:</strong> <span class="badge bg-success">{{ task.status }}</span></p>
+            <p><strong>Lần chạy cuối:</strong> {{ task.last_run.strftime('%Y-%m-%d %H:%M:%S UTC') if task.last_run else 'Chưa chạy' }}</p>
+            <a href="{{ url_for('main.download_csv', task_id=task.id) }}" class="btn btn-primary">
+                <i class="fas fa-download"></i> Tải xuống CSV
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            Dữ liệu Kết quả
+        </div>
+        <div class="card-body">
+            {% if results_data %}
+                {% if results_data is mapping %}
+                    {# Hiển thị nếu kết quả là dictionary {'key': 'value', ...} #}
+                    <table class="table table-bordered table-striped">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Tên dữ liệu</th>
+                                <th>Giá trị</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for key, value in results_data.items() %}
+                                <tr>
+                                    <td>{{ key }}</td>
+                                    <td>
+                                        {% if value is sequence and value is not string %}
+                                            {# Nếu giá trị là list/tuple #}
+                                            {{ value | join(', ') }}
+                                        {% else %}
+                                            {{ value }}
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                 {% elif results_data is sequence and results_data and results_data[0] is mapping %}
+                     {# Hiển thị nếu kết quả là list of dictionaries [{'key1': 'val1', ...}, ...] #}
+                     <table class="table table-bordered table-striped">
+                         <thead class="table-light">
+                             <tr>
+                                 {% for key in results_data[0].keys() %}
+                                     <th>{{ key }}</th>
+                                 {% endfor %}
+                             </tr>
+                         </thead>
+                         <tbody>
+                             {% for row_dict in results_data %}
+                                 <tr>
+                                     {% for value in row_dict.values() %}
+                                         <td>
+                                             {% if value is sequence and value is not string %}
+                                                 {{ value | join(', ') }}
+                                             {% else %}
+                                                 {{ value }}
+                                             {% endif %}
+                                         </td>
+                                     {% endfor %}
+                                 </tr>
+                             {% endfor %}
+                         </tbody>
+                     </table>
+                {% else %}
+                    {# Trường hợp khác (ví dụ: list đơn giản) #}
+                     <pre>{{ results_data | tojson(indent=2) }}</pre>
+                {% endif %}
+            {% else %}
+                <p class="text-muted">Không có dữ liệu kết quả nào để hiển thị.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <a href="{{ url_for('main.task_list') }}" class="btn btn-secondary">Quay lại Danh sách</a>
+    </div>
+
+</div>
+{% endblock %} 

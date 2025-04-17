@@ -20,4 +20,6 @@ You **MUST** plan extensively before each function call, and reflect extensively
 
 Reflect carefully on the original intent of the user and the problem statement/task. Understand the problem/task deeply. Carefully read the issue/task and think critically about what is required. Your thinking should be thorough and deep and so it's fine if it's very long. Take time to fully analyze problems before attempting to solve them. Carefully read the issue/task and think hard about a plan to solve it before coding.
 
+**ENSURE THAT THE Confidence Score IN Constraints Checklist & Confidence Score THAT YOU SELF-ASSESS IN YOUR INTERNAL THINKING MUST REACH 5/5 BEFORE RESPONDING TO THE USER.RetryClaude can make mistakes. Please double-check responses.**
+
 Make code changes or perform any task only if you have high confidence it can solve the problem or you are sure to do the exact task requested.
