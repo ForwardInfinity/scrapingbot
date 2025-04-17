@@ -1,6 +1,8 @@
 import json
 from flask import current_app
-from app import db
+from apscheduler.jobstores.base import JobLookupError
+from app import db, scheduler
+from app.services import scraping_service
 from app.models import Task
 
 def get_dashboard_stats():
@@ -13,6 +15,61 @@ def get_dashboard_stats():
         'failed_tasks': 0,        # Giả lập không có task lỗi
         'scheduled_tasks': 1      # Giả lập có 1 task được lập lịch
     }
+
+def _add_or_update_schedule_job(task):
+    """Thêm hoặc cập nhật job lập lịch cho task trong APScheduler."""
+    if not task.schedule:
+        # Nếu không có lịch trình, đảm bảo job bị xóa (nếu có)
+        try:
+            scheduler.remove_job(f'task_{task.id}')
+            current_app.logger.info(f"Removed existing schedule job for task {task.id}.")
+        except JobLookupError:
+            pass # Không có job để xóa, bỏ qua
+        return
+
+    # Phân tích lịch trình
+    try:
+        schedule_type, schedule_value = task.schedule.split(':', 1)
+    except ValueError:
+        current_app.logger.error(f"Invalid schedule format for task {task.id}: {task.schedule}")
+        return
+
+    job_id = f'task_{task.id}'
+    trigger_args = {'id': job_id, 'replace_existing': True}
+
+    try:
+        if schedule_type == 'interval':
+            # Giả sử schedule_value là số giờ
+            trigger_args['trigger'] = 'interval'
+            trigger_args['hours'] = int(schedule_value)
+        elif schedule_type == 'daily':
+            # Giả sử schedule_value là HH:MM
+            hour, minute = map(int, schedule_value.split(':'))
+            trigger_args['trigger'] = 'cron'
+            trigger_args['hour'] = hour
+            trigger_args['minute'] = minute
+        # Thêm các loại trigger khác nếu cần (ví dụ: cron)
+        # elif schedule_type == 'cron':
+        #     trigger_args['trigger'] = 'cron'
+        #     # Cần parse cron string phức tạp hơn ở đây
+        #     # Ví dụ: minute, hour, day, month, day_of_week = schedule_value.split(' ')
+        #     # trigger_args['minute'] = minute ...
+        else:
+            current_app.logger.warning(f"Unsupported schedule type '{schedule_type}' for task {task.id}")
+            return
+
+        # Thêm/Cập nhật job
+        scheduler.add_job(
+            func=scraping_service.run_scraping_task,
+            args=[task.id],
+            **trigger_args
+        )
+        current_app.logger.info(f"Scheduled job '{job_id}' with trigger: {trigger_args}")
+
+    except (ValueError, TypeError) as e:
+        current_app.logger.error(f"Error processing schedule value for task {task.id}: {e}. Schedule: {task.schedule}")
+    except Exception as e:
+        current_app.logger.error(f"Error adding/updating schedule job for task {task.id}: {e}")
 
 def create_task(form_data):
     """Tạo một task scraping mới và lưu vào cơ sở dữ liệu.
@@ -50,6 +107,10 @@ def create_task(form_data):
         # Thêm vào session và commit vào DB
         db.session.add(new_task)
         db.session.commit()
+
+        # Thêm job vào scheduler nếu có lịch trình
+        _add_or_update_schedule_job(new_task)
+
         return new_task
     except Exception as e:
         # Log lỗi ở đây nếu cần
@@ -132,6 +193,11 @@ def update_task(task_id, form_data):
         # Các trường này sẽ được cập nhật bởi quá trình chạy task
 
         db.session.commit() # Commit thay đổi
+
+        # Cập nhật job trong scheduler
+        # Gọi hàm này sau khi commit để đảm bảo task.schedule đã được cập nhật trong DB (nếu cần đọc lại)
+        _add_or_update_schedule_job(task)
+
         return task
     except Exception as e:
         # Log lỗi khi cập nhật task
@@ -154,6 +220,13 @@ def delete_task(task_id):
         return False
 
     try:
+        # Xóa job tương ứng khỏi scheduler TRƯỚC KHI xóa task khỏi DB
+        try:
+            scheduler.remove_job(f'task_{task_id}', ignore_errors=True)
+            current_app.logger.info(f"Removed schedule job for task {task_id} before deletion.")
+        except Exception as e: # Bắt lỗi rộng hơn phòng trường hợp scheduler có vấn đề
+             current_app.logger.error(f"Error removing schedule job for task {task_id}: {e}")
+
         db.session.delete(task)
         db.session.commit()
         return True
