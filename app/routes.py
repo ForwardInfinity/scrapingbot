@@ -1,10 +1,13 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for, current_app, abort
-from app.services import task_service  # Import service
+from app.services import task_service, scraping_service # Import thêm scraping_service
 from app.forms import TaskForm, DeleteForm # Import form, Thêm DeleteForm
 # Import Task model nếu cần truy vấn trực tiếp, nhưng ở đây service đã xử lý
 from app.models import Task
-# from app import db # Import db nếu cần commit trực tiếp, nhưng service đã xử lý
+from app import db, scheduler # Import db và scheduler từ app factory
 import json # Cần import json để parse selectors khi edit
+import logging # Import logging
+
+logger = logging.getLogger(__name__) # Khởi tạo logger
 
 main = Blueprint('main', __name__)
 
@@ -144,6 +147,54 @@ def delete_task_route(task_id):
         flash(f'Không thể xóa tác vụ "{task_name}". Đã có lỗi xảy ra.', 'danger')
 
     # Chuyển hướng về trang danh sách task
+    return redirect(url_for('main.task_list'))
+
+# === Route để kích hoạt chạy Task thủ công ===
+@main.route('/tasks/<int:task_id>/run', methods=['POST'])
+def run_task_route(task_id):
+    """Kích hoạt chạy tác vụ scraping thủ công bằng cách thêm job vào APScheduler."""
+    task = db.session.get(Task, task_id)
+    if not task:
+        flash(f'Không tìm thấy tác vụ với ID {task_id}.', 'danger')
+        return redirect(url_for('main.task_list'))
+
+    try:
+        # Kiểm tra xem scheduler có đang chạy không
+        if not scheduler.running:
+            logger.error("APScheduler is not running. Cannot schedule job.")
+            flash('Bộ lập lịch đang không hoạt động, không thể yêu cầu chạy tác vụ.', 'danger')
+            return redirect(url_for('main.task_list'))
+
+        # Thêm job chạy ngay lập tức (run_date=None tương đương với chạy ngay)
+        # ID của job nên là duy nhất, ví dụ: f'manual_run_{task.id}_{datetime.now().timestamp()}'
+        # để tránh trùng lặp nếu người dùng nhấn nút nhiều lần nhanh chóng
+        # Tuy nhiên, để đơn giản và khớp với việc lập lịch sau này, có thể dùng f'task_{task.id}'
+        # và dùng replace_existing=True, nhưng cần kiểm tra xem có job định kỳ nào đang chạy không
+        # -> Giải pháp an toàn hơn là dùng ID job riêng cho chạy thủ công
+        # Hoặc đơn giản hơn là không đặt ID, để APScheduler tự tạo ID.
+        # Ở đây, ta sẽ sử dụng phương án đơn giản nhất: không đặt ID cụ thể cho job chạy một lần.
+
+        scheduler.add_job(
+            func=scraping_service.run_scraping_task,
+            args=[task_id],
+            trigger='date', # Chạy một lần vào thời điểm được thêm
+            # id=f'manual_run_{task.id}', # Có thể bỏ id để tự sinh
+            # replace_existing=True # Có thể cần nếu dùng id cố định
+            misfire_grace_time=60 # Cho phép trễ 60s nếu scheduler bị tắc nghẽn
+        )
+        # Cập nhật trạng thái thành Pending để người dùng biết là đã đưa vào hàng đợi
+        # (Mặc dù job 'date' thường chạy ngay, nhưng để nhất quán với logic scheduler)
+        task.status = 'Pending'
+        db.session.commit()
+
+        logger.info(f"Đã thêm job chạy thủ công cho task ID: {task_id}")
+        flash(f'Đã yêu cầu chạy tác vụ "{task.name}". Trạng thái sẽ sớm được cập nhật.', 'info')
+
+    except Exception as e:
+        db.session.rollback() # Rollback nếu có lỗi khi commit status hoặc thêm job
+        logger.error(f"Lỗi khi thêm job chạy thủ công cho task ID: {task_id}. Lỗi: {e}", exc_info=True)
+        flash(f'Đã xảy ra lỗi khi yêu cầu chạy tác vụ: {e}', 'danger')
+
     return redirect(url_for('main.task_list'))
 
 # Các route khác sẽ được thêm vào đây...

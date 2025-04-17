@@ -4,19 +4,14 @@
 
 ## IN PROGRESS
 
-*   [ ] **3.1:** Tạo `app/scraper.py` và hàm `scrape_data(url, selectors_dict, timeout)` (requests, bs4, xử lý lỗi chi tiết, trả dict/raise exception).
-*   [ ] **3.2:** Tạo service `scraping_service.py` và hàm `run_scraping_task(task_id)` (chạy nền, cập nhật status, gọi scraper, xử lý kết quả/lỗi, lưu DB, xử lý app context).
-*   [ ] **3.3:** Tạo route `/tasks/<int:task_id>/run` (POST).
-*   [ ] **3.4:** Implement logic route `/tasks/<int:task_id>/run` (thêm job APScheduler chạy ngay, flash, redirect).
-*   [ ] **3.5:** Cập nhật `task_list.html` (nút "Chạy ngay", JS spinner/phản hồi).
+*   [ ] **4.1:** Cấu hình và khởi động `APScheduler` trong `app/__init__.py`.
+*   [ ] **4.2:** Sửa đổi service `create_task` và `update_task` (thêm/sửa job APScheduler dựa trên form).
+*   [ ] **4.3:** Sửa đổi service `delete_task` (xóa job APScheduler tương ứng).
 
 ## PENDING
 
 ### Phase 4: Xây dựng Chức năng Lập lịch & Hiển thị Kết quả/Lỗi
 
-*   [ ] **4.1:** Cấu hình và khởi động `APScheduler` trong `app/__init__.py`.
-*   [ ] **4.2:** Sửa đổi service `create_task` và `update_task` (thêm/sửa job APScheduler dựa trên form).
-*   [ ] **4.3:** Sửa đổi service `delete_task` (xóa job APScheduler tương ứng).
 *   [ ] **4.4:** Tạo route `/tasks/<int:task_id>/results` (GET).
 *   [ ] **4.5:** Implement logic route `/tasks/<int:task_id>/results` (lấy task, parse JSON, render template).
 *   [ ] **4.6:** Tạo template `view_results.html` (hiển thị kết quả dạng bảng, nút download CSV).
@@ -122,3 +117,11 @@
 *   [x] **2.17:** Tạo service function `delete_task(task_id)`.
 *   [x] **2.18:** Implement logic route `/tasks/<int:task_id>/delete` (gọi service, flash, redirect, JS confirm).
 *   [x] **2.19:** Kiểm tra chức năng CRUD nâng cao (Tạo, Xem list, Search, Paginate, Sửa, Xóa).
+
+### [x] Phase 3: Xây dựng Chức năng Scraping Linh hoạt & Bất đồng bộ (ĐÃ HOÀN THÀNH TOÀN BỘ PHASE NÀY)
+
+*   [x] **3.1:** Tạo `app/scraper.py` và hàm `scrape_data(url, selectors_dict, timeout)` (requests, bs4, xử lý lỗi chi tiết, trả dict/raise exception).
+*   [x] **3.2:** Tạo service `scraping_service.py` và hàm `run_scraping_task(task_id)` (chạy nền, cập nhật status, gọi scraper, xử lý kết quả/lỗi, lưu DB, xử lý app context).
+*   [x] **3.3:** Tạo route `/tasks/<int:task_id>/run` (POST).
+*   [x] **3.4:** Implement logic route `/tasks/<int:task_id>/run` (thêm job APScheduler chạy ngay, flash, redirect).
+*   [x] **3.5:** Cập nhật `task_list.html` (nút "Chạy ngay", JS spinner/phản hồi).
