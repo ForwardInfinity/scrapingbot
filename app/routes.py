@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, flash, redirect, url_for, current_app, abort
+from flask import Blueprint, render_template, request, flash, redirect, url_for, current_app, abort, Response, make_response
 from app.services import task_service, scraping_service # Import thêm scraping_service
 from app.forms import TaskForm, DeleteForm # Import form, Thêm DeleteForm
 # Import Task model nếu cần truy vấn trực tiếp, nhưng ở đây service đã xử lý
@@ -6,8 +6,10 @@ from app.models import Task
 from app import db, scheduler # Import db và scheduler từ app factory
 import json # Cần import json để parse selectors khi edit
 import logging # Import logging
-# Thêm import cần thiết cho route xem kết quả
+# Thêm import cần thiết cho route xem kết quả và download CSV
 from sqlalchemy.orm.exc import NoResultFound
+import csv
+import io
 
 logger = logging.getLogger(__name__) # Khởi tạo logger
 
@@ -242,6 +244,100 @@ def view_results(task_id):
     except Exception as e:
         logger.error(f"Lỗi không xác định khi xem kết quả task ID {task_id}: {e}", exc_info=True)
         flash('Đã xảy ra lỗi không mong muốn khi cố gắng hiển thị kết quả.', 'danger')
+        return redirect(url_for('main.task_list'))
+
+# === Route để tải kết quả Task dưới dạng CSV ===
+@main.route('/tasks/<int:task_id>/download_csv')
+def download_csv(task_id):
+    """Xử lý yêu cầu tải xuống kết quả scraping dưới dạng file CSV."""
+    try:
+        task = db.session.get(Task, task_id)
+        if not task:
+            logger.warning(f"Yêu cầu tải CSV cho task ID không tồn tại: {task_id}")
+            abort(404)
+
+        if task.status != 'Completed' or not task.result:
+            logger.info(f"Task ID {task_id} chưa hoàn thành hoặc không có kết quả. Không thể tải CSV.")
+            flash('Tác vụ chưa hoàn thành, thất bại hoặc không có kết quả để tải xuống.', 'warning')
+            return redirect(url_for('main.task_list'))
+
+        try:
+            results_data = json.loads(task.result)
+            logger.debug(f"Đã parse thành công kết quả JSON cho CSV của task ID: {task_id}")
+        except json.JSONDecodeError as e:
+            logger.error(f"Lỗi parse JSON kết quả CSV của task ID {task_id}: {e}", exc_info=True)
+            flash(f'Không thể tạo CSV do lỗi định dạng JSON trong kết quả: {e}', 'danger')
+            return redirect(url_for('main.view_results', task_id=task_id)) # Chuyển về trang xem kết quả
+
+        # Kiểm tra xem results_data có phải là list các dict không (phổ biến)
+        # hoặc chỉ là một dict đơn lẻ.
+        if not results_data:
+             flash('Không có dữ liệu để tạo file CSV.', 'info')
+             return redirect(url_for('main.view_results', task_id=task_id))
+
+        output = io.StringIO() # Tạo bộ đệm trong bộ nhớ
+        # Ghi UTF-8 BOM để cải thiện tương thích với Excel
+        output.write('\ufeff')
+
+        fieldnames = []
+
+        # Xử lý trường hợp kết quả là một list các dictionary
+        if isinstance(results_data, list) and len(results_data) > 0 and isinstance(results_data[0], dict):
+            fieldnames = list(results_data[0].keys())
+            writer = csv.DictWriter(output, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerows(results_data)
+        # Xử lý trường hợp kết quả là một dictionary đơn lẻ
+        elif isinstance(results_data, dict):
+             fieldnames = list(results_data.keys())
+             writer = csv.DictWriter(output, fieldnames=fieldnames)
+             writer.writeheader()
+             # Chuyển đổi dict đơn lẻ thành list chứa dict đó để writerows hoạt động
+             writer.writerow(results_data)
+        else:
+            # Trường hợp dữ liệu không rõ cấu trúc (không phải list dict hoặc dict)
+             logger.warning(f"Cấu trúc dữ liệu kết quả của task ID {task_id} không được hỗ trợ để tạo CSV.")
+             flash('Định dạng dữ liệu kết quả không phù hợp để tạo CSV.', 'warning')
+             return redirect(url_for('main.view_results', task_id=task_id))
+
+        output.seek(0) # Đưa con trỏ về đầu bộ đệm
+
+        # Tạo Response để trả về file CSV
+        response = make_response(output.getvalue())
+        response.headers['Content-Disposition'] = f'attachment; filename=task_{task.id}_{task.name}_results.csv'
+        response.headers['Content-type'] = 'text/csv; charset=utf-8' # Thêm charset=utf-8
+        logger.info(f"Đã tạo và gửi file CSV cho task ID: {task_id}")
+        return response
+
+    except Exception as e:
+        logger.error(f"Lỗi không xác định khi tạo CSV cho task ID {task_id}: {e}", exc_info=True)
+        flash('Đã xảy ra lỗi không mong muốn khi cố gắng tạo file CSV.', 'danger')
+        return redirect(url_for('main.task_list'))
+
+# === Route để xem chi tiết lỗi Task ===
+@main.route('/tasks/<int:task_id>/error')
+def view_error(task_id):
+    """Hiển thị chi tiết lỗi của một Task đã thất bại."""
+    try:
+        task = db.session.get(Task, task_id)
+        if not task:
+            logger.warning(f"Yêu cầu xem lỗi cho task ID không tồn tại: {task_id}")
+            abort(404)
+
+        # Chỉ hiển thị nếu task thất bại và có thông báo lỗi
+        if task.status == 'Failed' and task.error_message:
+            logger.debug(f"Hiển thị trang lỗi cho task ID: {task_id}")
+            return render_template('view_error.html',
+                                   title=f'Lỗi Tác vụ: {task.name}',
+                                   task=task)
+        else:
+            logger.info(f"Task ID {task_id} không ở trạng thái Failed hoặc không có thông báo lỗi. Trạng thái: {task.status}")
+            flash('Tác vụ không ở trạng thái lỗi hoặc không có thông báo lỗi để hiển thị.', 'info')
+            return redirect(url_for('main.task_list'))
+
+    except Exception as e:
+        logger.error(f"Lỗi không xác định khi xem lỗi task ID {task_id}: {e}", exc_info=True)
+        flash('Đã xảy ra lỗi không mong muốn khi cố gắng hiển thị thông tin lỗi.', 'danger')
         return redirect(url_for('main.task_list'))
 
 # Các route khác sẽ được thêm vào đây...

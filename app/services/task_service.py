@@ -39,9 +39,10 @@ def _add_or_update_schedule_job(task):
 
     try:
         if schedule_type == 'interval':
-            # Giả sử schedule_value là số giờ
+            # Giá trị schedule_value là số phút (có thể là số thập phân)
             trigger_args['trigger'] = 'interval'
-            trigger_args['hours'] = int(schedule_value)
+            # Sử dụng minutes thay vì hours
+            trigger_args['minutes'] = float(schedule_value)
         elif schedule_type == 'daily':
             # Giả sử schedule_value là HH:MM
             hour, minute = map(int, schedule_value.split(':'))

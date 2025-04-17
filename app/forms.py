@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, URLField, FieldList, FormField, SelectField, SubmitField
-from wtforms.validators import DataRequired, URL, Optional, Length
+from wtforms.validators import DataRequired, URL, Optional, Length, Regexp
 
 class SelectorForm(FlaskForm):
     """Form con để nhập một cặp Tên dữ liệu và CSS Selector."""
@@ -24,16 +24,26 @@ class TaskForm(FlaskForm):
         'Loại lập lịch',
         choices=[
             ('none', 'Không lập lịch'),
-            ('interval', 'Chạy định kỳ (Interval)'),
-            ('cron', 'Chạy theo Cron')
-            # Thêm các loại khác nếu cần
+            ('interval', 'Chạy định kỳ theo Phút (Interval)'),
+            ('daily', 'Chạy hàng ngày vào lúc (HH:MM)')
         ],
         default='none',
         validators=[Optional()]
     )
     # Trường này sẽ được hiển thị/ẩn bằng JavaScript tùy thuộc vào schedule_type
-    # Ví dụ: Nếu 'interval', nhập số giờ. Nếu 'cron', nhập cron expression.
-    schedule_value = StringField('Giá trị lập lịch', validators=[Optional(), Length(max=128)]) # Validator Optional vì không phải lúc nào cũng cần
+    # Ví dụ: Nếu 'interval', nhập số phút. Nếu 'daily', nhập giờ:phút.
+    schedule_value = StringField(
+        'Giá trị lập lịch',
+        validators=[
+            Optional(), # Vẫn là Optional vì không phải lúc nào cũng cần
+            Length(max=128),
+            # Thêm Regexp để kiểm tra định dạng HH:MM (chỉ khi trường này được nhập)
+            # Áp dụng validator này nếu schedule_type là 'daily' (logic kiểm tra này nên ở route hoặc service nếu cần chặt chẽ hơn,
+            # nhưng thêm ở đây để có phản hồi trên form)
+            # -> Cách đơn giản hơn là kiểm tra nếu có giá trị thì phải đúng format HH:MM
+            Regexp(r'^([01]\d|2[0-3]):([0-5]\d)$', message='Vui lòng nhập đúng định dạng HH:MM (ví dụ: 09:30 hoặc 23:59).')
+        ]
+    )
 
     submit = SubmitField('Lưu tác vụ')
 

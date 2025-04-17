@@ -15,7 +15,7 @@
             <p><strong>Tên tác vụ:</strong> {{ task.name }}</p>
             <p><strong>URL:</strong> <a href="{{ task.url }}" target="_blank">{{ task.url }}</a></p>
             <p><strong>Trạng thái:</strong> <span class="badge bg-success">{{ task.status }}</span></p>
-            <p><strong>Lần chạy cuối:</strong> {{ task.last_run.strftime('%Y-%m-%d %H:%M:%S UTC') if task.last_run else 'Chưa chạy' }}</p>
+            <p><strong>Lần chạy cuối:</strong> {{ task.last_run | to_local_time | format_datetime('%d/%m/%Y %H:%M:%S') if task.last_run else 'Chưa chạy' }}</p>
             <a href="{{ url_for('main.download_csv', task_id=task.id) }}" class="btn btn-primary">
                 <i class="fas fa-download"></i> Tải xuống CSV
             </a>
@@ -43,9 +43,14 @@
                                     <td>{{ key }}</td>
                                     <td>
                                         {% if value is sequence and value is not string %}
-                                            {# Nếu giá trị là list/tuple #}
-                                            {{ value | join(', ') }}
+                                            {# Nếu giá trị là list/tuple, hiển thị dạng list HTML #}
+                                            <ul class="list-unstyled mb-0">
+                                                {% for item in value %}
+                                                    <li>{{ item }}</li>
+                                                {% endfor %}
+                                            </ul>
                                         {% else %}
+                                            {# Nếu là giá trị đơn, hiển thị bình thường #}
                                             {{ value }}
                                         {% endif %}
                                     </td>
@@ -69,8 +74,14 @@
                                      {% for value in row_dict.values() %}
                                          <td>
                                              {% if value is sequence and value is not string %}
-                                                 {{ value | join(', ') }}
+                                                 {# Nếu giá trị là list/tuple, hiển thị dạng list HTML #}
+                                                 <ul class="list-unstyled mb-0">
+                                                     {% for item in value %}
+                                                         <li>{{ item }}</li>
+                                                     {% endfor %}
+                                                 </ul>
                                              {% else %}
+                                                 {# Nếu là giá trị đơn, hiển thị bình thường #}
                                                  {{ value }}
                                              {% endif %}
                                          </td>

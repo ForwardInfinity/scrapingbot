@@ -198,19 +198,25 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             scheduleValueDiv.style.display = 'block';
             scheduleValueInput.required = true;
-            let placeholderText = 'Ví dụ: 2 (cho interval giờ) hoặc 0 9 * * * (cho cron)';
-            let labelText = 'Giá trị lập lịch';
             if (scheduleTypeSelect.value === 'interval') {
-                placeholderText = 'Nhập số giờ (ví dụ: 2)';
-                labelText = 'Số giờ (Interval)';
+                 scheduleValueInput.placeholder = 'Ví dụ: 120 (Số phút)';
+                 scheduleValueInput.type = 'number';
+                 scheduleValueInput.step = '0.01';
+                 scheduleValueInput.min = '0.01';
+                 scheduleValueInput.removeAttribute('pattern');
+            } else if (scheduleTypeSelect.value === 'daily') {
+                 scheduleValueInput.placeholder = 'Ví dụ: 09:30 hoặc 23:00';
+                 scheduleValueInput.type = 'text';
+                 scheduleValueInput.pattern = '([01]\\d|2[0-3]):([0-5]\\d)';
+                 scheduleValueInput.removeAttribute('step');
+                 scheduleValueInput.removeAttribute('min');
+            } else {
+                 scheduleValueInput.placeholder = 'Nhập giá trị...';
+                 scheduleValueInput.type = 'text';
+                 scheduleValueInput.removeAttribute('pattern');
+                 scheduleValueInput.removeAttribute('step');
+                 scheduleValueInput.removeAttribute('min');
             }
-            if (scheduleTypeSelect.value === 'cron') {
-                placeholderText = 'Nhập cron expression (ví dụ: 0 9 * * *)';
-                 labelText = 'Cron Expression';
-            }
-            scheduleValueInput.placeholder = placeholderText;
-            const labelElement = scheduleValueDiv.querySelector('label[for="schedule_value"]');
-            if(labelElement) labelElement.textContent = labelText;
         }
     }
 

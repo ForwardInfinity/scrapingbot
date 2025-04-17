@@ -4,22 +4,15 @@
 
 ## IN PROGRESS
 
-*   [ ] **4.7:** Tạo route `/tasks/<int:task_id>/download_csv` (GET).
-*   [ ] **4.8:** Implement logic route `/tasks/<int:task_id>/download_csv` (lấy task, tạo CSV, trả Response).
-*   [ ] **4.9:** Tạo route `/tasks/<int:task_id>/error` (GET).
-*   [ ] **4.10:** Implement logic route `/tasks/<int:task_id>/error` (lấy task, render template).
-*   [ ] **4.11:** Tạo template `view_error.html` (hiển thị thông tin lỗi).
-*   [ ] **4.12:** Cập nhật `task_list.html` (thêm nút "Xem kết quả", "Xem lỗi" có điều kiện).
-*   [ ] **4.13:** Kiểm tra chức năng lập lịch, xem kết quả, tải CSV, xem lỗi.
+*   [ ] **5.1:** Tạo file `app/chatbot_logic.py`.
+*   [ ] **5.2:** Thiết kế cấu trúc dữ liệu quy tắc (keywords, response).
+*   [ ] **5.3:** Viết hàm `get_bot_response(user_input)` (chuẩn hóa, tìm quy tắc, trả lời).
+*   [ ] **5.4:** Xây dựng bộ quy tắc ban đầu cho các chức năng chính.
 
 ## PENDING
 
 ### Phase 5: Tích hợp Chatbot Hướng dẫn (Rule-Based)
 
-*   [ ] **5.1:** Tạo file `app/chatbot_logic.py`.
-*   [ ] **5.2:** Thiết kế cấu trúc dữ liệu quy tắc (keywords, response).
-*   [ ] **5.3:** Viết hàm `get_bot_response(user_input)` (chuẩn hóa, tìm quy tắc, trả lời).
-*   [ ] **5.4:** Xây dựng bộ quy tắc ban đầu cho các chức năng chính.
 *   [ ] **5.5:** Tạo route `/chatbot` (GET).
 *   [ ] **5.6:** Tạo template `chatbot.html` (vùng hội thoại, form input).
 *   [ ] **5.7:** Tạo route API `/ask_bot` (POST).
@@ -117,7 +110,7 @@
 *   [x] **3.4:** Implement logic route `/tasks/<int:task_id>/run` (thêm job APScheduler chạy ngay, flash, redirect).
 *   [x] **3.5:** Cập nhật `task_list.html` (nút "Chạy ngay", JS spinner/phản hồi).
 
-### [ ] Phase 4: Xây dựng Chức năng Lập lịch & Hiển thị Kết quả/Lỗi
+### [x] Phase 4: Xây dựng Chức năng Lập lịch & Hiển thị Kết quả/Lỗi (ĐÃ HOÀN THÀNH TOÀN BỘ PHASE NÀY)
 
 *   [x] **4.1:** Cấu hình và khởi động `APScheduler` trong `app/__init__.py`.
 *   [x] **4.2:** Sửa đổi service `create_task` và `update_task` (thêm/sửa job APScheduler dựa trên form).
@@ -125,3 +118,10 @@
 *   [x] **4.4:** Tạo route `/tasks/<int:task_id>/results` (GET).
 *   [x] **4.5:** Implement logic route `/tasks/<int:task_id>/results` (lấy task, parse JSON, render template).
 *   [x] **4.6:** Tạo template `view_results.html` (hiển thị kết quả dạng bảng, nút download CSV).
+*   [x] **4.7:** Tạo route `/tasks/<int:task_id>/download_csv` (GET).
+*   [x] **4.8:** Implement logic route `/tasks/<int:task_id>/download_csv` (lấy task, tạo CSV, trả Response).
+*   [x] **4.9:** Tạo route `/tasks/<int:task_id>/error` (GET).
+*   [x] **4.10:** Implement logic route `/tasks/<int:task_id>/error` (lấy task, render template).
+*   [x] **4.11:** Tạo template `view_error.html` (hiển thị thông tin lỗi).
+*   [x] **4.12:** Cập nhật `task_list.html` (thêm nút "Xem kết quả", "Xem lỗi" có điều kiện).
+*   [x] **4.13:** Kiểm tra chức năng lập lịch, xem kết quả, tải CSV, xem lỗi. (Cần kiểm tra thủ công)

@@ -86,4 +86,12 @@ def create_app(config_name='default'):
     # Import models để SQLAlchemy biết về chúng (quan trọng cho db.create_all())
     from . import models
 
+    # Đăng ký các custom Jinja filters
+    from .utils.helpers import to_local_time
+    app.jinja_env.filters['to_local_time'] = to_local_time
+
+    # Đăng ký filter format_datetime
+    from .utils.helpers import format_datetime
+    app.jinja_env.filters['format_datetime'] = format_datetime
+
     return app
