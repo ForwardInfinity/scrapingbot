@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Hỏi Đáp Chatbot</h2>
+
+    <div class="card chat-card">
+        <div class="card-header">Hội thoại</div>
+        <div class="card-body chat-box" id="chat-box" style="height: 400px; overflow-y: scroll;">
+            <!-- Tin nhắn sẽ được thêm vào đây bằng JavaScript -->
+            <div class="message bot-message mb-2">
+                <span class="badge bg-primary">Bot</span>
+                <span>Xin chào! Tôi có thể giúp gì cho bạn về Web Scraping Bot?</span>
+            </div>
+        </div>
+        <div class="card-footer">
+            <form id="chat-form" class="d-flex">
+                <input type="text" id="user-input" class="form-control me-2" placeholder="Nhập câu hỏi của bạn..." autocomplete="off" required>
+                <button type="submit" class="btn btn-primary">Gửi</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Thêm CSS tùy chỉnh nếu cần -->
+<style>
+.chat-box .message {
+    padding: 8px 12px;
+    border-radius: 10px;
+    max-width: 80%;
+}
+.chat-box .user-message {
+    background-color: #e9ecef;
+    align-self: flex-end;
+    margin-left: auto; /* Đẩy tin nhắn người dùng sang phải */
+    text-align: right; /* Căn lề text trong bubble */
+}
+.chat-box .bot-message {
+    background-color: #cfe2ff;
+    align-self: flex-start;
+    margin-right: auto; /* Đẩy tin nhắn bot sang trái */
+}
+.chat-box .message .badge {
+    margin-right: 5px;
+}
+/* Đảm bảo các bubble có khoảng cách */
+.chat-box > div {
+   display: flex; /* Sử dụng flex để đẩy message */
+   margin-bottom: 10px;
+}
+</style>
+
+{% endblock %}
+
+{% block body_scripts %}
+{{ super() }}
+<!-- JavaScript cho chatbot -->
+<script>
+    const chatBox = document.getElementById('chat-box');
+    const chatForm = document.getElementById('chat-form');
+    const userInput = document.getElementById('user-input');
+
+    // Hàm để thêm tin nhắn vào chat box
+    function addMessage(sender, message) {
+        const messageDiv = document.createElement('div');
+        messageDiv.classList.add('message', sender === 'User' ? 'user-message' : 'bot-message', 'mb-2');
+
+        const senderBadge = document.createElement('span');
+        senderBadge.classList.add('badge', sender === 'User' ? 'bg-secondary' : 'bg-primary');
+        senderBadge.textContent = sender;
+
+        const messageSpan = document.createElement('span');
+        messageSpan.textContent = message;
+
+        messageDiv.appendChild(senderBadge);
+        messageDiv.appendChild(messageSpan);
+
+        chatBox.appendChild(messageDiv);
+        // Tự động cuộn xuống tin nhắn mới nhất
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    // Xử lý khi form được submit
+    chatForm.addEventListener('submit', async function(event) {
+        event.preventDefault(); // Ngăn chặn hành vi submit mặc định của form
+
+        const userMessage = userInput.value.trim();
+        if (!userMessage) {
+            return; // Không gửi nếu input rỗng
+        }
+
+        // Hiển thị tin nhắn của người dùng
+        addMessage('User', userMessage);
+
+        // Xóa nội dung input và focus lại
+        userInput.value = '';
+        userInput.focus();
+
+        // Gửi tin nhắn đến API backend
+        try {
+            const response = await fetch('{{ url_for("main.ask_bot") }}', { // Sử dụng url_for để lấy URL động
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ message: userMessage })
+            });
+
+            if (!response.ok) {
+                // Xử lý lỗi HTTP (ví dụ: 500 Internal Server Error)
+                const errorData = await response.json().catch(() => ({ response: 'Lỗi máy chủ. Không thể nhận phản hồi.' }));
+                addMessage('Bot', `Lỗi ${response.status}: ${errorData.error || errorData.response || 'Không rõ lỗi'}`);
+                return;
+            }
+
+            const data = await response.json();
+            // Hiển thị phản hồi của bot
+            addMessage('Bot', data.response);
+
+        } catch (error) {
+            console.error('Lỗi khi gửi tin nhắn:', error);
+            addMessage('Bot', 'Đã xảy ra lỗi kết nối. Vui lòng thử lại.');
+        }
+    });
+
+    // Focus vào ô input khi trang tải xong
+    userInput.focus();
+
+</script>
+{% endblock %} 

@@ -1,15 +1,17 @@
-from flask import Blueprint, render_template, request, flash, redirect, url_for, current_app, abort, Response, make_response
+from flask import Blueprint, render_template, request, flash, redirect, url_for, current_app, abort, Response, make_response, jsonify
 from app.services import task_service, scraping_service # Import thêm scraping_service
 from app.forms import TaskForm, DeleteForm # Import form, Thêm DeleteForm
 # Import Task model nếu cần truy vấn trực tiếp, nhưng ở đây service đã xử lý
 from app.models import Task
-from app import db, scheduler # Import db và scheduler từ app factory
+from app import db, scheduler, csrf # Import db, scheduler và csrf từ app factory
 import json # Cần import json để parse selectors khi edit
 import logging # Import logging
 # Thêm import cần thiết cho route xem kết quả và download CSV
 from sqlalchemy.orm.exc import NoResultFound
 import csv
 import io
+# Thêm import cho chatbot
+from app.chatbot_logic import get_bot_response
 
 logger = logging.getLogger(__name__) # Khởi tạo logger
 
@@ -317,27 +319,62 @@ def download_csv(task_id):
 # === Route để xem chi tiết lỗi Task ===
 @main.route('/tasks/<int:task_id>/error')
 def view_error(task_id):
-    """Hiển thị chi tiết lỗi của một Task đã thất bại."""
+    """Route để hiển thị thông tin lỗi của một Task đã thất bại."""
     try:
         task = db.session.get(Task, task_id)
         if not task:
-            logger.warning(f"Yêu cầu xem lỗi cho task ID không tồn tại: {task_id}")
+            logger.warning(f"Truy cập xem lỗi cho task ID không tồn tại: {task_id}")
             abort(404)
 
-        # Chỉ hiển thị nếu task thất bại và có thông báo lỗi
-        if task.status == 'Failed' and task.error_message:
-            logger.debug(f"Hiển thị trang lỗi cho task ID: {task_id}")
-            return render_template('view_error.html',
-                                   title=f'Lỗi Tác vụ: {task.name}',
-                                   task=task)
-        else:
-            logger.info(f"Task ID {task_id} không ở trạng thái Failed hoặc không có thông báo lỗi. Trạng thái: {task.status}")
-            flash('Tác vụ không ở trạng thái lỗi hoặc không có thông báo lỗi để hiển thị.', 'info')
+        if task.status != 'Failed':
+            logger.info(f"Task ID {task_id} không ở trạng thái Failed (trạng thái: {task.status}). Không có lỗi để xem.")
+            flash('Tác vụ không ở trạng thái thất bại. Không có thông tin lỗi.', 'warning')
             return redirect(url_for('main.task_list'))
 
+        if not task.error_message:
+            logger.info(f"Task ID {task_id} ở trạng thái Failed nhưng không có thông báo lỗi.")
+            flash('Tác vụ đã thất bại nhưng không ghi nhận được thông báo lỗi cụ thể.', 'info')
+            return redirect(url_for('main.task_list'))
+
+        return render_template('view_error.html',
+                               title=f'Lỗi Tác vụ: {task.name}',
+                               task=task)
     except Exception as e:
         logger.error(f"Lỗi không xác định khi xem lỗi task ID {task_id}: {e}", exc_info=True)
         flash('Đã xảy ra lỗi không mong muốn khi cố gắng hiển thị thông tin lỗi.', 'danger')
         return redirect(url_for('main.task_list'))
+
+# === Routes cho Chatbot ===
+@main.route('/chatbot')
+def chatbot_interface():
+    """Hiển thị giao diện Chatbot."""
+    return render_template('chatbot.html', title='Hỏi Đáp Chatbot')
+
+@main.route('/ask_bot', methods=['POST'])
+@csrf.exempt # Miễn trừ route này khỏi kiểm tra CSRF
+def ask_bot():
+    """API endpoint để nhận câu hỏi từ user và trả về câu trả lời từ bot."""
+    # Lấy dữ liệu JSON từ request
+    data = request.get_json()
+    if not data or 'message' not in data:
+        logger.warning("Request /ask_bot thiếu trường 'message' trong JSON.")
+        return jsonify({'error': 'Missing message field'}), 400 # Bad Request
+
+    user_message = data['message']
+    logger.debug(f"Nhận được tin nhắn từ user: {user_message}")
+
+    # Kiểm tra nội dung tin nhắn
+    if not user_message.strip():
+        logger.info("Request /ask_bot có tin nhắn rỗng.")
+        return jsonify({'response': 'Vui lòng nhập câu hỏi.'}), 200 # Trả về OK nhưng yêu cầu nhập lại
+
+    # Gọi hàm xử lý logic chatbot
+    try:
+        bot_response = get_bot_response(user_message)
+        logger.debug(f"Bot phản hồi: {bot_response}")
+        return jsonify({'response': bot_response})
+    except Exception as e:
+        logger.error(f"Lỗi khi gọi get_bot_response: {e}", exc_info=True)
+        return jsonify({'error': 'Internal server error'}), 500 # Internal Server Error
 
 # Các route khác sẽ được thêm vào đây...

@@ -4,28 +4,15 @@
 
 ## IN PROGRESS
 
-*   [ ] **5.1:** Tạo file `app/chatbot_logic.py`.
-*   [ ] **5.2:** Thiết kế cấu trúc dữ liệu quy tắc (keywords, response).
-*   [ ] **5.3:** Viết hàm `get_bot_response(user_input)` (chuẩn hóa, tìm quy tắc, trả lời).
-*   [ ] **5.4:** Xây dựng bộ quy tắc ban đầu cho các chức năng chính.
-
-## PENDING
-
-### Phase 5: Tích hợp Chatbot Hướng dẫn (Rule-Based)
-
-*   [ ] **5.5:** Tạo route `/chatbot` (GET).
-*   [ ] **5.6:** Tạo template `chatbot.html` (vùng hội thoại, form input).
-*   [ ] **5.7:** Tạo route API `/ask_bot` (POST).
-*   [ ] **5.8:** Implement logic route `/ask_bot` (nhận JSON, gọi service, trả JSON).
-*   [ ] **5.9:** Thêm JavaScript vào `chatbot.html` (bắt submit, gọi API, hiển thị hội thoại).
-*   [ ] **5.10:** Kiểm tra chức năng chatbot.
-
-### Phase 6: Hoàn thiện UI/UX
-
 *   [ ] **6.1:** Kiểm tra và tinh chỉnh responsive trên các kích thước màn hình.
 *   [ ] **6.2:** Implement Toast Notifications (Bootstrap Toasts) cho phản hồi hành động.
 *   [ ] **6.3:** Implement Spinners (Bootstrap Spinners) nhất quán khi chạy nền/tải dữ liệu.
 *   [ ] **6.4:** Rà soát và cải thiện thông báo lỗi validation trên form.
+
+## PENDING
+
+### Phase 6: Hoàn thiện UI/UX
+
 *   [ ] **6.5:** Tinh chỉnh giao diện bảng `task_list.html` (cột, tooltip).
 *   [ ] **6.6:** (Tùy chọn) Implement Dark Mode/Light Mode toggle.
 
@@ -125,3 +112,16 @@
 *   [x] **4.11:** Tạo template `view_error.html` (hiển thị thông tin lỗi).
 *   [x] **4.12:** Cập nhật `task_list.html` (thêm nút "Xem kết quả", "Xem lỗi" có điều kiện).
 *   [x] **4.13:** Kiểm tra chức năng lập lịch, xem kết quả, tải CSV, xem lỗi. (Cần kiểm tra thủ công)
+
+### [x] Phase 5: Tích hợp Chatbot Hướng dẫn (Rule-Based) (ĐÃ HOÀN THÀNH TOÀN BỘ PHASE NÀY)
+
+*   [x] **5.1:** Tạo file `app/chatbot_logic.py`.
+*   [x] **5.2:** Thiết kế cấu trúc dữ liệu quy tắc (keywords, response).
+*   [x] **5.3:** Viết hàm `get_bot_response(user_input)` (chuẩn hóa, tìm quy tắc, trả lời).
+*   [x] **5.4:** Xây dựng bộ quy tắc ban đầu cho các chức năng chính.
+*   [x] **5.5:** Tạo route `/chatbot` (GET).
+*   [x] **5.6:** Tạo template `chatbot.html` (vùng hội thoại, form input).
+*   [x] **5.7:** Tạo route API `/ask_bot` (POST).
+*   [x] **5.8:** Implement logic route `/ask_bot` (nhận JSON, gọi service, trả JSON).
+*   [x] **5.9:** Thêm JavaScript vào `chatbot.html` (bắt submit, gọi API, hiển thị hội thoại).
+*   [x] **5.10:** Kiểm tra chức năng chatbot.
