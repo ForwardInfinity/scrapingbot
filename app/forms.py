@@ -13,11 +13,11 @@ class SelectorForm(FlaskForm):
 class TaskForm(FlaskForm):
     """Form chính để tạo hoặc chỉnh sửa một Task scraping."""
     name = StringField('Tên tác vụ', validators=[DataRequired(message="Tên tác vụ không được để trống."), Length(max=128)])
-    url = URLField('URL mục tiêu', validators=[DataRequired(message="URL không hợp lệ hoặc bị bỏ trống."), URL(message="Vui lòng nhập URL hợp lệ.")])
+    url = URLField('URL mục tiêu', validators=[DataRequired(message="URL không được để trống."), URL(message="Vui lòng nhập URL hợp lệ (ví dụ: http://example.com).")])
 
     # FieldList cho phép chứa danh sách các form con (SelectorForm)
     # min_entries=1 đảm bảo phải có ít nhất 1 selector được nhập
-    selectors = FieldList(FormField(SelectorForm), min_entries=1, label='CSS Selectors')
+    selectors = FieldList(FormField(SelectorForm), min_entries=1, label='CSS Selectors', validators=[DataRequired(message="Phải có ít nhất một selector được cấu hình.")])
 
     # Các lựa chọn cho lập lịch
     schedule_type = SelectField(
@@ -37,11 +37,11 @@ class TaskForm(FlaskForm):
         validators=[
             Optional(), # Vẫn là Optional vì không phải lúc nào cũng cần
             Length(max=128),
-            # Thêm Regexp để kiểm tra định dạng HH:MM (chỉ khi trường này được nhập)
-            # Áp dụng validator này nếu schedule_type là 'daily' (logic kiểm tra này nên ở route hoặc service nếu cần chặt chẽ hơn,
-            # nhưng thêm ở đây để có phản hồi trên form)
-            # -> Cách đơn giản hơn là kiểm tra nếu có giá trị thì phải đúng format HH:MM
-            Regexp(r'^([01]\d|2[0-3]):([0-5]\d)$', message='Vui lòng nhập đúng định dạng HH:MM (ví dụ: 09:30 hoặc 23:59).')
+            # Thêm Regexp để kiểm tra định dạng HH:MM khi schedule_type là 'daily'
+            # Logic kiểm tra điều kiện sẽ nằm trong JavaScript và route/service
+            # Ở đây chỉ kiểm tra format cơ bản nếu có giá trị
+            # Regexp(r'^(\d+)|([01]\d|2[0-3]):([0-5]\d)$', message='Định dạng không hợp lệ. Nhập số phút cho Interval hoặc HH:MM cho Daily.')
+            # Bỏ Regexp phức tạp ở đây, sẽ validate ở route/service dựa trên type
         ]
     )
 

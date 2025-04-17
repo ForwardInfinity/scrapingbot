@@ -154,7 +154,6 @@
     *   **6.3:** Implement Spinners (sử dụng Bootstrap Spinners) một cách nhất quán tại các vị trí cần thiết: khi nhấn nút "Chạy ngay", khi submit form tạo/sửa task, khi tải dữ liệu AJAX (nếu có).
     *   **6.4:** Rà soát và cải thiện thông báo lỗi validation trên các form, đảm bảo chúng rõ ràng và hiển thị đúng vị trí.
     *   **6.5:** Tinh chỉnh giao diện bảng `task_list.html`: Đảm bảo các cột hiển thị hợp lý, có thể thêm tooltip cho các icon/nút nếu cần.
-    *   **6.6:** (Tùy chọn nâng cao) Implement chức năng Dark Mode/Light Mode toggle sử dụng JavaScript và CSS variables.
 
 ## Phase 7: Đảm bảo Chất lượng (Logging, Testing, Code Quality)
 

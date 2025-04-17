@@ -16,7 +16,10 @@
         <div class="card-footer">
             <form id="chat-form" class="d-flex">
                 <input type="text" id="user-input" class="form-control me-2" placeholder="Nhập câu hỏi của bạn..." autocomplete="off" required>
-                <button type="submit" class="btn btn-primary">Gửi</button>
+                <button type="submit" id="send-button" class="btn btn-primary">
+                    <span class="spinner-border spinner-border-sm d-none me-1" role="status" aria-hidden="true" id="chat-spinner"></span>
+                    Gửi
+                </button>
             </form>
         </div>
     </div>
@@ -59,6 +62,8 @@
     const chatBox = document.getElementById('chat-box');
     const chatForm = document.getElementById('chat-form');
     const userInput = document.getElementById('user-input');
+    const sendButton = document.getElementById('send-button');
+    const chatSpinner = document.getElementById('chat-spinner');
 
     // Hàm để thêm tin nhắn vào chat box
     function addMessage(sender, message) {
@@ -92,9 +97,14 @@
         // Hiển thị tin nhắn của người dùng
         addMessage('User', userMessage);
 
-        // Xóa nội dung input và focus lại
+        // Xóa nội dung input
         userInput.value = '';
-        userInput.focus();
+
+        // Hiển thị spinner và vô hiệu hóa nút gửi
+        if(sendButton && chatSpinner) {
+            sendButton.disabled = true;
+            chatSpinner.classList.remove('d-none');
+        }
 
         // Gửi tin nhắn đến API backend
         try {
@@ -107,10 +117,10 @@
             });
 
             if (!response.ok) {
-                // Xử lý lỗi HTTP (ví dụ: 500 Internal Server Error)
+                // Xử lý lỗi HTTP
                 const errorData = await response.json().catch(() => ({ response: 'Lỗi máy chủ. Không thể nhận phản hồi.' }));
                 addMessage('Bot', `Lỗi ${response.status}: ${errorData.error || errorData.response || 'Không rõ lỗi'}`);
-                return;
+                return; // Không ẩn spinner nếu lỗi
             }
 
             const data = await response.json();
@@ -120,6 +130,13 @@
         } catch (error) {
             console.error('Lỗi khi gửi tin nhắn:', error);
             addMessage('Bot', 'Đã xảy ra lỗi kết nối. Vui lòng thử lại.');
+        } finally {
+            // Ẩn spinner và kích hoạt lại nút gửi (luôn thực hiện sau try/catch)
+             if(sendButton && chatSpinner) {
+                sendButton.disabled = false;
+                chatSpinner.classList.add('d-none');
+            }
+            userInput.focus(); // Focus lại vào input sau khi xử lý xong
         }
     });
 

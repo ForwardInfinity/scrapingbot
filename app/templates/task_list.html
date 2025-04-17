@@ -77,38 +77,39 @@
                                 <td>
                                     <div class="d-flex align-items-center gap-1 flex-wrap">
                                         {% if task.status != 'Running' %}
-                                        <form action="{{ url_for('main.run_task_route', task_id=task.id) }}" method="POST" style="display: inline;">
+                                        <form action="{{ url_for('main.run_task_route', task_id=task.id) }}" method="POST" style="display: inline;" class="run-task-form">
                                             {{ delete_form.hidden_tag() }}
-                                            <button type="submit" class="btn btn-primary btn-sm" title="Chạy ngay">
+                                            <button type="submit" class="btn btn-primary btn-sm run-task-button" data-bs-toggle="tooltip" data-bs-placement="top" title="Chạy ngay tác vụ">
+                                                <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
                                                 <i class="fas fa-play"></i>
                                             </button>
                                         </form>
                                         {% else %}
-                                            <button type="button" class="btn btn-primary btn-sm" title="Đang chạy..." disabled>
+                                            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Tác vụ đang chạy..." disabled>
                                                 <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                                                <span class="visually-hidden">Đang chạy...</span>
+                                                <i class="fas fa-play"></i>
                                             </button>
                                         {% endif %}
 
                                         {% if task.status == 'Completed' %}
-                                            <a href="{{ url_for('main.view_results', task_id=task.id) }}" class="btn btn-success btn-sm" title="Xem Kết quả">
+                                            <a href="{{ url_for('main.view_results', task_id=task.id) }}" class="btn btn-success btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Xem kết quả scraping">
                                                 <i class="fas fa-eye"></i>
                                             </a>
                                         {% endif %}
 
                                         {% if task.status == 'Failed' %}
-                                            <a href="{{ url_for('main.view_error', task_id=task.id) }}" class="btn btn-warning btn-sm" title="Xem Lỗi">
+                                            <a href="{{ url_for('main.view_error', task_id=task.id) }}" class="btn btn-warning btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Xem chi tiết lỗi">
                                                 <i class="fas fa-exclamation-triangle"></i>
                                             </a>
                                         {% endif %}
 
-                                        <a href="{{ url_for('main.edit_task', task_id=task.id) }}" class="btn btn-secondary btn-sm" title="Sửa">
+                                        <a href="{{ url_for('main.edit_task', task_id=task.id) }}" class="btn btn-secondary btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Chỉnh sửa tác vụ">
                                             <i class="fas fa-edit"></i>
                                         </a>
 
-                                        <form action="{{ url_for('main.delete_task_route', task_id=task.id) }}" method="POST" style="display: inline;" onsubmit="return confirm('Bạn có chắc chắn muốn xóa tác vụ \'{{ task.name }}\'?');">
+                                        <form action="{{ url_for('main.delete_task_route', task_id=task.id) }}" method="POST" style="display: inline;" onsubmit="return confirm('Bạn có chắc chắn muốn xóa tác vụ \'{{ task.name }}\'? Hành động này không thể hoàn tác.');">
                                             {{ delete_form.hidden_tag() }}
-                                            <button type="submit" class="btn btn-danger btn-sm" title="Xóa">
+                                            <button type="submit" class="btn btn-danger btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Xóa tác vụ">
                                                 <i class="fas fa-trash"></i>
                                             </button>
                                         </form>
@@ -169,4 +170,26 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block body_scripts %}
+{{ super() }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Kích hoạt spinner cho nút "Chạy ngay"
+    const runTaskForms = document.querySelectorAll('.run-task-form');
+    runTaskForms.forEach(form => {
+        form.addEventListener('submit', function(event) {
+            const button = form.querySelector('.run-task-button');
+            const spinner = button.querySelector('.spinner-border');
+            if (button && spinner) {
+                spinner.classList.remove('d-none');
+                button.disabled = true;
+                button.querySelector('i.fa-play')?.classList.add('d-none'); // Ẩn icon play
+            }
+            // Không cần preventDefault vì form cần submit để chuyển hướng
+        });
+    });
+});
+</script>
 {% endblock %} 

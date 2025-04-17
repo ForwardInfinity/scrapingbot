@@ -106,7 +106,10 @@
         </div>
 
         <hr>
-        {{ form.submit(class="btn btn-primary") }}
+        <button type="submit" class="btn btn-primary" id="submit-button">
+            <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="submit-spinner"></span>
+            {% if task_id %}Lưu thay đổi{% else %}Tạo tác vụ{% endif %}
+        </button>
         <a href="{{ url_for('main.task_list') }}" class="btn btn-link">Hủy</a>
     </form>
 </div>
@@ -223,6 +226,17 @@ document.addEventListener('DOMContentLoaded', function() {
     if (scheduleTypeSelect) {
         scheduleTypeSelect.addEventListener('change', toggleScheduleValue);
         toggleScheduleValue();
+    }
+
+    const taskForm = document.querySelector('form');
+    const submitButton = document.getElementById('submit-button');
+    const submitSpinner = document.getElementById('submit-spinner');
+
+    if (taskForm && submitButton && submitSpinner) {
+        taskForm.addEventListener('submit', function() {
+            submitSpinner.classList.remove('d-none');
+            submitButton.disabled = true;
+        });
     }
 
     updateSelectorIndices();

@@ -4,23 +4,14 @@
 
 ## IN PROGRESS
 
-*   [ ] **6.1:** Kiểm tra và tinh chỉnh responsive trên các kích thước màn hình.
-*   [ ] **6.2:** Implement Toast Notifications (Bootstrap Toasts) cho phản hồi hành động.
-*   [ ] **6.3:** Implement Spinners (Bootstrap Spinners) nhất quán khi chạy nền/tải dữ liệu.
-*   [ ] **6.4:** Rà soát và cải thiện thông báo lỗi validation trên form.
-
-## PENDING
-
-### Phase 6: Hoàn thiện UI/UX
-
-*   [ ] **6.5:** Tinh chỉnh giao diện bảng `task_list.html` (cột, tooltip).
-*   [ ] **6.6:** (Tùy chọn) Implement Dark Mode/Light Mode toggle.
-
-### Phase 7: Đảm bảo Chất lượng (Logging, Testing, Code Quality)
-
 *   [ ] **7.1:** Cấu hình Logging chi tiết (`RotatingFileHandler`, `StreamHandler`, format, level).
 *   [ ] **7.2:** Thêm câu lệnh log vào các vị trí quan trọng trong code.
 *   [ ] **7.3:** Viết Unit Tests (`pytest`) cho models, services, scraper, routes.
+
+## PENDING
+
+### Phase 7: Đảm bảo Chất lượng (Logging, Testing, Code Quality)
+
 *   [ ] **7.4:** Cấu hình và chạy `pytest-cov`, đảm bảo coverage >= 80%.
 *   [ ] **7.5:** Cấu hình và chạy `flake8` để kiểm tra code style.
 *   [ ] **7.6:** Cấu hình và chạy `black` để format code.
@@ -125,3 +116,10 @@
 *   [x] **5.8:** Implement logic route `/ask_bot` (nhận JSON, gọi service, trả JSON).
 *   [x] **5.9:** Thêm JavaScript vào `chatbot.html` (bắt submit, gọi API, hiển thị hội thoại).
 *   [x] **5.10:** Kiểm tra chức năng chatbot.
+
+### [x] Phase 6: Hoàn thiện UI/UX (ĐÃ HOÀN THÀNH TOÀN BỘ PHASE NÀY)
+*   [x] **6.1:** Kiểm tra và tinh chỉnh responsive trên các kích thước màn hình.
+*   [x] **6.2:** Implement Toast Notifications (Bootstrap Toasts) cho phản hồi hành động.
+*   [x] **6.3:** Implement Spinners (Bootstrap Spinners) nhất quán khi chạy nền/tải dữ liệu.
+*   [x] **6.4:** Rà soát và cải thiện thông báo lỗi validation trên form.
+*   [x] **6.5:** Tinh chỉnh giao diện bảng `task_list.html` (cột, tooltip).
