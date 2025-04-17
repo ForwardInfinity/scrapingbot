@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} - Web Scraping Bot{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="mt-4">{{ title }}</h1>
+    <p>Tổng quan về các tác vụ Web Scraping của bạn.</p>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Tổng số tác vụ</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.total_tasks }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-tasks fa-2x text-gray-300"></i> <!-- Cần FontAwesome -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Hoàn thành</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.completed_tasks }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Đang chạy
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.running_tasks }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-spinner fa-spin fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Lỗi</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.failed_tasks }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Task Button -->
+    <div class="row">
+        <div class="col-lg-12">
+             <!-- Tạm thời chưa có route, sẽ thêm sau -->
+            <a href="#" class="btn btn-primary btn-lg">
+                <i class="fas fa-plus"></i> + Tạo tác vụ Scraping mới
+            </a>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block head_css %}
+    <!-- Có thể thêm link FontAwesome vào đây hoặc base.html nếu cần icons -->
+    <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"> -->
+{% endblock %} 

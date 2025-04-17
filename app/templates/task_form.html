@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% import "bootstrap-wtf.html" as wtf %} {# Giả sử bạn đã có file này hoặc dùng thư viện flask-bootstrap #}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>{% if form.name.data %}Chỉnh sửa{% else %}Tạo mới{% endif %} tác vụ Scraping</h2>
+    <hr>
+    <form method="POST" action="" novalidate>
+        {{ form.hidden_tag() }}
+
+        {{ wtf.render_field(form.name) }}
+        {{ wtf.render_field(form.url) }}
+
+        <hr>
+        <h4>Cấu hình Selectors</h4>
+        <div id="selectors-container">
+            {# Render các field selector hiện có (nếu là form edit) hoặc 1 field trống ban đầu #}
+            {% for selector_field in form.selectors %}
+            <div class="selector-group mb-3 p-3 border rounded">
+                <div class="row">
+                    <div class="col-md-5">
+                        {{ wtf.render_field(selector_field.data_name) }}
+                    </div>
+                    <div class="col-md-5">
+                        {{ wtf.render_field(selector_field.css_selector) }}
+                    </div>
+                    <div class="col-md-2 align-self-center">
+                        <button type="button" class="btn btn-danger btn-sm remove-selector">Xóa</button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <button type="button" id="add-selector" class="btn btn-secondary btn-sm mb-3">+ Thêm Selector</button>
+
+        <hr>
+        <h4>Cấu hình Lập lịch (Tùy chọn)</h4>
+        {{ wtf.render_field(form.schedule_type) }}
+        <div id="schedule-value-div" style="display: none;"> {# Ẩn ban đầu #}
+            {{ wtf.render_field(form.schedule_value) }}
+        </div>
+
+        <hr>
+        {{ wtf.render_field(form.submit, class="btn btn-primary") }}
+        <a href="{{ url_for('main.dashboard') }}" class="btn btn-link">Hủy</a> {# Hoặc link về trang list nếu có #}
+    </form>
+</div>
+
+{# Template ẩn dùng để clone khi thêm selector mới #}
+<template id="selector-template">
+    <div class="selector-group mb-3 p-3 border rounded">
+        <div class="row">
+            <div class="col-md-5">
+                <label class="form-label" for="selectors-__prefix__-data_name">Tên dữ liệu</label>
+                <input class="form-control" id="selectors-__prefix__-data_name" name="selectors-__prefix__-data_name" type="text" value="" maxlength="100" required>
+            </div>
+            <div class="col-md-5">
+                <label class="form-label" for="selectors-__prefix__-css_selector">CSS Selector</label>
+                <input class="form-control" id="selectors-__prefix__-css_selector" name="selectors-__prefix__-css_selector" type="text" value="" maxlength="500" required>
+            </div>
+            <div class="col-md-2 align-self-center">
+                <button type="button" class="btn btn-danger btn-sm remove-selector">Xóa</button>
+            </div>
+        </div>
+    </div>
+</template>
+{% endblock %}
+
+{% block body_scripts %}
+{{ super() }} {# Kế thừa script từ base.html nếu có #}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const selectorsContainer = document.getElementById('selectors-container');
+    const addSelectorButton = document.getElementById('add-selector');
+    const selectorTemplate = document.getElementById('selector-template');
+
+    // --- Xử lý thêm Selector ---
+    addSelectorButton.addEventListener('click', function() {
+        const index = selectorsContainer.querySelectorAll('.selector-group').length;
+        // Clone template
+        const newSelectorHTML = selectorTemplate.innerHTML.replace(/__prefix__/g, index);
+        const newSelectorDiv = document.createElement('div');
+        newSelectorDiv.innerHTML = newSelectorHTML;
+        // Append vào container (lấy phần tử đầu tiên bên trong div vừa tạo)
+        selectorsContainer.appendChild(newSelectorDiv.firstElementChild);
+    });
+
+    // --- Xử lý xóa Selector ---
+    // Dùng event delegation để xử lý nút xóa trên các element được thêm động
+    selectorsContainer.addEventListener('click', function(event) {
+        if (event.target.classList.contains('remove-selector')) {
+            // Tìm đến div.selector-group cha gần nhất và xóa nó
+            const selectorGroup = event.target.closest('.selector-group');
+            if (selectorGroup) {
+                selectorGroup.remove();
+                // Cập nhật lại index cho các selector còn lại để đảm bảo tính liên tục
+                updateSelectorIndices();
+            }
+        }
+    });
+
+    // --- Hàm cập nhật lại index của các selector ---
+    function updateSelectorIndices() {
+        const selectorGroups = selectorsContainer.querySelectorAll('.selector-group');
+        selectorGroups.forEach((group, newIndex) => {
+            const inputs = group.querySelectorAll('input, select, textarea, label'); // Lấy cả label để cập nhật 'for'
+            inputs.forEach(input => {
+                // Cập nhật name và id
+                if (input.name) {
+                    input.name = input.name.replace(/selectors-\d+-/, `selectors-${newIndex}-`);
+                }
+                if (input.id) {
+                    input.id = input.id.replace(/selectors-\d+-/, `selectors-${newIndex}-`);
+                }
+                // Cập nhật thuộc tính 'for' của label
+                if (input.tagName === 'LABEL' && input.htmlFor) {
+                     input.htmlFor = input.htmlFor.replace(/selectors-\d+-/, `selectors-${newIndex}-`);
+                }
+            });
+        });
+    }
+
+    // --- Xử lý hiển thị/ẩn trường giá trị lập lịch ---
+    const scheduleTypeSelect = document.getElementById('schedule_type');
+    const scheduleValueDiv = document.getElementById('schedule-value-div');
+    const scheduleValueInput = document.getElementById('schedule_value'); // Lấy input để có thể xóa value khi ẩn
+
+    function toggleScheduleValue() {
+        if (scheduleTypeSelect.value === 'none') {
+            scheduleValueDiv.style.display = 'none';
+            scheduleValueInput.value = ''; // Xóa giá trị khi ẩn đi
+            scheduleValueInput.required = false; // Không bắt buộc nhập
+        } else {
+            scheduleValueDiv.style.display = 'block';
+             scheduleValueInput.required = true; // Bắt buộc nhập khi hiện ra
+             // Cập nhật placeholder hoặc label nếu cần dựa trên scheduleTypeSelect.value
+             // Ví dụ:
+             // let placeholderText = 'Nhập giá trị...';
+             // if (scheduleTypeSelect.value === 'interval') placeholderText = 'Nhập số giờ (vd: 2)';
+             // if (scheduleTypeSelect.value === 'cron') placeholderText = 'Nhập cron expression (vd: 0 9 * * *)';
+             // scheduleValueInput.placeholder = placeholderText;
+             // document.querySelector('label[for="schedule_value"]').textContent = `Giá trị (${scheduleTypeSelect.value})`; // Cập nhật label
+        }
+    }
+
+    scheduleTypeSelect.addEventListener('change', toggleScheduleValue);
+    // Gọi lần đầu khi load trang
+    toggleScheduleValue();
+
+     // Khởi tạo lại index khi trang load (quan trọng khi có lỗi validation và render lại form)
+    updateSelectorIndices();
+
+});
+</script>
+{% endblock %} 
