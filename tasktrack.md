@@ -4,30 +4,13 @@
 
 ## IN PROGRESS
 
-*   [ ] **2.9:** Tạo route `/tasks` (GET).
-*   [ ] **2.10:** Tạo service function `get_tasks(page, per_page, search_term)` (với search, pagination).
-*   [ ] **2.11:** Implement logic route `/tasks` (lấy params, gọi service, truyền pagination).
-*   [ ] **2.12:** Tạo template `task_list.html` (ô search, bảng task, pagination controls).
-
-## PENDING
-
-### Phase 2: Xây dựng Chức năng Quản lý Tác vụ (CRUD Nâng cao)
-
-*   [ ] **2.13:** Tạo route `/tasks/<int:task_id>/edit` (GET, POST).
-*   [ ] **2.14:** Tạo service functions `get_task_by_id(task_id)` và `update_task(task_id, form_data)`.
-*   [ ] **2.15:** Implement logic route `/tasks/<int:task_id>/edit` (lấy task, điền form, validate, gọi service, flash, redirect).
-*   [ ] **2.16:** Tạo route `/tasks/<int:task_id>/delete` (POST).
-*   [ ] **2.17:** Tạo service function `delete_task(task_id)`.
-*   [ ] **2.18:** Implement logic route `/tasks/<int:task_id>/delete` (gọi service, flash, redirect, JS confirm).
-*   [ ] **2.19:** Kiểm tra chức năng CRUD nâng cao (Tạo, Xem list, Search, Paginate, Sửa, Xóa).
-
-### Phase 3: Xây dựng Chức năng Scraping Linh hoạt & Bất đồng bộ
-
 *   [ ] **3.1:** Tạo `app/scraper.py` và hàm `scrape_data(url, selectors_dict, timeout)` (requests, bs4, xử lý lỗi chi tiết, trả dict/raise exception).
 *   [ ] **3.2:** Tạo service `scraping_service.py` và hàm `run_scraping_task(task_id)` (chạy nền, cập nhật status, gọi scraper, xử lý kết quả/lỗi, lưu DB, xử lý app context).
 *   [ ] **3.3:** Tạo route `/tasks/<int:task_id>/run` (POST).
 *   [ ] **3.4:** Implement logic route `/tasks/<int:task_id>/run` (thêm job APScheduler chạy ngay, flash, redirect).
 *   [ ] **3.5:** Cập nhật `task_list.html` (nút "Chạy ngay", JS spinner/phản hồi).
+
+## PENDING
 
 ### Phase 4: Xây dựng Chức năng Lập lịch & Hiển thị Kết quả/Lỗi
 
@@ -118,7 +101,7 @@
 *   [x] **1.18:** Tạo template `dashboard.html` (kế thừa base, hiển thị stats, nút tạo task).
 *   [x] **1.19:** Chạy thử và kiểm tra trang Dashboard.
 
-### Phase 2: Xây dựng Chức năng Quản lý Tác vụ (CRUD Nâng cao)
+### [x] Phase 2: Xây dựng Chức năng Quản lý Tác vụ (CRUD Nâng cao) (ĐÃ HOÀN THÀNH TOÀN BỘ PHASE NÀY)
 
 *   [x] **2.1:** Định nghĩa model `Task` trong `models.py` (bao gồm selectors, schedule error_message...).
 *   [x] **2.2:** Tạo bảng database (`db.create_all()`). (Đã hướng dẫn chạy lệnh thủ công)
@@ -128,3 +111,14 @@
 *   [x] **2.6:** Tạo template `task_form.html` (render form, JS cho selectors động).
 *   [x] **2.7:** Tạo service function `create_task(form_data)` trong `app/services/task_service.py`.
 *   [x] **2.8:** Implement logic route `/tasks/new` (validate, gọi service, flash, redirect).
+*   [x] **2.9:** Tạo route `/tasks` (GET).
+*   [x] **2.10:** Tạo service function `get_tasks(page, per_page, search_term)` (với search, pagination).
+*   [x] **2.11:** Implement logic route `/tasks` (lấy params, gọi service, truyền pagination).
+*   [x] **2.12:** Tạo template `task_list.html` (ô search, bảng task, pagination controls).
+*   [x] **2.13:** Tạo route `/tasks/<int:task_id>/edit` (GET, POST).
+*   [x] **2.14:** Tạo service functions `get_task_by_id(task_id)` và `update_task(task_id, form_data)`.
+*   [x] **2.15:** Implement logic route `/tasks/<int:task_id>/edit` (lấy task, điền form, validate, gọi service, flash, redirect).
+*   [x] **2.16:** Tạo route `/tasks/<int:task_id>/delete` (POST).
+*   [x] **2.17:** Tạo service function `delete_task(task_id)`.
+*   [x] **2.18:** Implement logic route `/tasks/<int:task_id>/delete` (gọi service, flash, redirect, JS confirm).
+*   [x] **2.19:** Kiểm tra chức năng CRUD nâng cao (Tạo, Xem list, Search, Paginate, Sửa, Xóa).

@@ -35,4 +35,8 @@ class TaskForm(FlaskForm):
     # Ví dụ: Nếu 'interval', nhập số giờ. Nếu 'cron', nhập cron expression.
     schedule_value = StringField('Giá trị lập lịch', validators=[Optional(), Length(max=128)]) # Validator Optional vì không phải lúc nào cũng cần
 
-    submit = SubmitField('Lưu tác vụ') 
+    submit = SubmitField('Lưu tác vụ')
+
+# Form trống chỉ để chứa CSRF token và phục vụ hành động POST an toàn
+class DeleteForm(FlaskForm):
+    submit = SubmitField('Xóa') # Trường này có thể không dùng trong template nhưng cần để form hợp lệ 

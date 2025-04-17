@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Danh sách Tác vụ</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="{{ url_for('main.dashboard') }}">Dashboard</a></li>
+        <li class="breadcrumb-item active">Danh sách Tác vụ</li>
+    </ol>
+
+    <!-- Ô tìm kiếm -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-search me-1"></i>
+            Tìm kiếm Tác vụ
+        </div>
+        <div class="card-body">
+            <form method="GET" action="{{ url_for('main.task_list') }}">
+                <div class="input-group">
+                    <input type="text" class="form-control" placeholder="Nhập tên tác vụ..." name="search" value="{{ search_term or '' }}">
+                    <button class="btn btn-primary" type="submit"><i class="fas fa-search"></i> Tìm kiếm</button>
+                    {% if search_term %}
+                    <a href="{{ url_for('main.task_list') }}" class="btn btn-secondary"><i class="fas fa-times"></i> Xóa tìm kiếm</a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Bảng danh sách tác vụ -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-table me-1"></i>
+            Danh sách Tác vụ
+            <a href="{{ url_for('main.new_task') }}" class="btn btn-success btn-sm float-end"><i class="fas fa-plus"></i> Tạo tác vụ mới</a>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover" id="datatablesSimple">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Tên tác vụ</th>
+                            <th>URL</th>
+                            <th>Trạng thái</th>
+                            <th>Lịch trình</th>
+                            <th>Tạo lúc</th>
+                            <th>Chạy lần cuối</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if pagination and pagination.items %}
+                            {% for task in pagination.items %}
+                            <tr>
+                                <td>{{ task.id }}</td>
+                                <td>{{ task.name }}</td>
+                                <td><a href="{{ task.url }}" target="_blank" title="{{ task.url }}">{{ task.url[:50] }}{% if task.url|length > 50 %}...{% endif %}</a></td>
+                                <td>
+                                    {% if task.status == 'Completed' %}
+                                        <span class="badge bg-success">{{ task.status }}</span>
+                                    {% elif task.status == 'Running' %}
+                                        <span class="badge bg-info">{{ task.status }}</span>
+                                    {% elif task.status == 'Failed' %}
+                                        <span class="badge bg-danger">{{ task.status }}</span>
+                                    {% elif task.status == 'Pending' %}
+                                        <span class="badge bg-warning text-dark">{{ task.status }}</span>
+                                    {% elif task.status == 'Scheduled' %}
+                                         <span class="badge bg-secondary">{{ task.status }}</span>
+                                    {% else %}
+                                        <span class="badge bg-light text-dark">{{ task.status }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ task.schedule or 'Không' }}</td>
+                                <td>{{ task.created_at.strftime('%d/%m/%Y %H:%M') if task.created_at else '-' }}</td>
+                                <td>{{ task.last_run.strftime('%d/%m/%Y %H:%M') if task.last_run else '-' }}</td>
+                                <td>
+                                    <button class="btn btn-primary btn-sm" title="Chạy ngay"><i class="fas fa-play"></i></button>
+                                    <button class="btn btn-info btn-sm" title="Xem kết quả"><i class="fas fa-eye"></i></button>
+                                    <button class="btn btn-warning btn-sm" title="Xem lỗi"><i class="fas fa-exclamation-triangle"></i></button>
+                                    <a href="{{ url_for('main.edit_task', task_id=task.id) }}" class="btn btn-secondary btn-sm" title="Sửa">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <form action="{{ url_for('main.delete_task_route', task_id=task.id) }}" method="POST" style="display: inline;" onsubmit="return confirm('Bạn có chắc chắn muốn xóa tác vụ \'{{ task.name }}\'?');">
+                                        {{ delete_form.hidden_tag() }}
+                                        <button type="submit" class="btn btn-danger btn-sm" title="Xóa">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="8" class="text-center">Không tìm thấy tác vụ nào.</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Điều khiển phân trang -->
+            {% if pagination %}
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center">
+                    <!-- Nút Trang trước -->
+                    <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+                        <a class="page-link" href="{{ url_for('main.task_list', page=pagination.prev_num, search=search_term) if pagination.has_prev else '#' }}" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+
+                    <!-- Danh sách các trang -->
+                    {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                        {% if page_num %}
+                            {% if pagination.page == page_num %}
+                            <li class="page-item active" aria-current="page">
+                                <span class="page-link">{{ page_num }}</span>
+                            </li>
+                            {% else %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('main.task_list', page=page_num, search=search_term) }}">{{ page_num }}</a>
+                            </li>
+                            {% endif %}
+                        {% else %}
+                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                        {% endif %}
+                    {% endfor %}
+
+                    <!-- Nút Trang sau -->
+                    <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+                        <a class="page-link" href="{{ url_for('main.task_list', page=pagination.next_num, search=search_term) if pagination.has_next else '#' }}" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            <div class="text-center text-muted">
+                Hiển thị {{ pagination.items|length }} trong tổng số {{ pagination.total }} tác vụ (Trang {{ pagination.page }}/{{ pagination.pages }}).
+            </div>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+{% endblock %} 

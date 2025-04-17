@@ -16,6 +16,9 @@ class Config:
     # Cấu hình APScheduler (ví dụ)
     SCHEDULER_API_ENABLED = True
 
+    # Số lượng task hiển thị trên mỗi trang
+    TASKS_PER_PAGE = 10
+
     # Các cấu hình khác có thể thêm vào đây
     # ví dụ: MAIL_SERVER, MAIL_PORT, ...
 

@@ -1,28 +1,68 @@
 {% extends "base.html" %}
-{% import "bootstrap-wtf.html" as wtf %} {# Giả sử bạn đã có file này hoặc dùng thư viện flask-bootstrap #}
 
 {% block content %}
 <div class="container mt-4">
-    <h2>{% if form.name.data %}Chỉnh sửa{% else %}Tạo mới{% endif %} tác vụ Scraping</h2>
+    <h2>{% if task_id %}Chỉnh sửa{% else %}Tạo mới{% endif %} tác vụ Scraping</h2>
     <hr>
-    <form method="POST" action="" novalidate>
+    <form method="POST" action="{% if task_id %}{{ url_for('main.edit_task', task_id=task_id) }}{% else %}{{ url_for('main.new_task') }}{% endif %}" novalidate>
         {{ form.hidden_tag() }}
 
-        {{ wtf.render_field(form.name) }}
-        {{ wtf.render_field(form.url) }}
+        <div class="mb-3">
+            {{ form.name.label(class="form-label") }}
+            {{ form.name(class="form-control" + (" is-invalid" if form.name.errors else ""), maxlength=128) }}
+            {% if form.name.errors %}
+                <div class="invalid-feedback">
+                    {% for error in form.name.errors %}
+                        <span>{{ error }}</span><br>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="mb-3">
+            {{ form.url.label(class="form-label") }}
+            {{ form.url(class="form-control" + (" is-invalid" if form.url.errors else ""), placeholder="https://example.com") }}
+             {% if form.url.errors %}
+                <div class="invalid-feedback">
+                    {% for error in form.url.errors %}
+                        <span>{{ error }}</span><br>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
 
         <hr>
         <h4>Cấu hình Selectors</h4>
         <div id="selectors-container">
-            {# Render các field selector hiện có (nếu là form edit) hoặc 1 field trống ban đầu #}
             {% for selector_field in form.selectors %}
             <div class="selector-group mb-3 p-3 border rounded">
+                {{ selector_field.hidden_tag() }}
                 <div class="row">
                     <div class="col-md-5">
-                        {{ wtf.render_field(selector_field.data_name) }}
+                        <div class="mb-3">
+                             {{ selector_field.data_name.label(class="form-label") }}
+                             {{ selector_field.data_name(class="form-control" + (" is-invalid" if selector_field.data_name.errors else ""), maxlength=100) }}
+                             {% if selector_field.data_name.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in selector_field.data_name.errors %}
+                                        <span>{{ error }}</span><br>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
                     </div>
                     <div class="col-md-5">
-                        {{ wtf.render_field(selector_field.css_selector) }}
+                         <div class="mb-3">
+                             {{ selector_field.css_selector.label(class="form-label") }}
+                             {{ selector_field.css_selector(class="form-control" + (" is-invalid" if selector_field.css_selector.errors else ""), maxlength=500) }}
+                             {% if selector_field.css_selector.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in selector_field.css_selector.errors %}
+                                        <span>{{ error }}</span><br>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                         </div>
                     </div>
                     <div class="col-md-2 align-self-center">
                         <button type="button" class="btn btn-danger btn-sm remove-selector">Xóa</button>
@@ -31,32 +71,60 @@
             </div>
             {% endfor %}
         </div>
+        {% if form.selectors.errors %}
+            <div class="alert alert-danger">
+                {% for error in form.selectors.errors %}
+                    <span>{{ error }}</span><br>
+                {% endfor %}
+            </div>
+        {% endif %}
         <button type="button" id="add-selector" class="btn btn-secondary btn-sm mb-3">+ Thêm Selector</button>
 
         <hr>
         <h4>Cấu hình Lập lịch (Tùy chọn)</h4>
-        {{ wtf.render_field(form.schedule_type) }}
-        <div id="schedule-value-div" style="display: none;"> {# Ẩn ban đầu #}
-            {{ wtf.render_field(form.schedule_value) }}
+        <div class="mb-3">
+            {{ form.schedule_type.label(class="form-label") }}
+            {{ form.schedule_type(class="form-select" + (" is-invalid" if form.schedule_type.errors else "")) }}
+            {% if form.schedule_type.errors %}
+                <div class="invalid-feedback">
+                    {% for error in form.schedule_type.errors %}
+                        <span>{{ error }}</span><br>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        <div id="schedule-value-div" class="mb-3" style="display: none;">
+            {{ form.schedule_value.label(class="form-label") }}
+            {{ form.schedule_value(class="form-control" + (" is-invalid" if form.schedule_value.errors else ""), placeholder="Ví dụ: 2 (cho interval giờ) hoặc 0 9 * * * (cho cron)", maxlength=128) }}
+             {% if form.schedule_value.errors %}
+                <div class="invalid-feedback">
+                    {% for error in form.schedule_value.errors %}
+                        <span>{{ error }}</span><br>
+                    {% endfor %}
+                </div>
+            {% endif %}
         </div>
 
         <hr>
-        {{ wtf.render_field(form.submit, class="btn btn-primary") }}
-        <a href="{{ url_for('main.dashboard') }}" class="btn btn-link">Hủy</a> {# Hoặc link về trang list nếu có #}
+        {{ form.submit(class="btn btn-primary") }}
+        <a href="{{ url_for('main.task_list') }}" class="btn btn-link">Hủy</a>
     </form>
 </div>
 
-{# Template ẩn dùng để clone khi thêm selector mới #}
 <template id="selector-template">
     <div class="selector-group mb-3 p-3 border rounded">
         <div class="row">
             <div class="col-md-5">
-                <label class="form-label" for="selectors-__prefix__-data_name">Tên dữ liệu</label>
-                <input class="form-control" id="selectors-__prefix__-data_name" name="selectors-__prefix__-data_name" type="text" value="" maxlength="100" required>
+                 <div class="mb-3">
+                    <label class="form-label" for="selectors-__prefix__-data_name">Tên dữ liệu</label>
+                    <input class="form-control" id="selectors-__prefix__-data_name" name="selectors-__prefix__-data_name" type="text" value="" maxlength="100" required>
+                 </div>
             </div>
             <div class="col-md-5">
-                <label class="form-label" for="selectors-__prefix__-css_selector">CSS Selector</label>
-                <input class="form-control" id="selectors-__prefix__-css_selector" name="selectors-__prefix__-css_selector" type="text" value="" maxlength="500" required>
+                <div class="mb-3">
+                    <label class="form-label" for="selectors-__prefix__-css_selector">CSS Selector</label>
+                    <input class="form-control" id="selectors-__prefix__-css_selector" name="selectors-__prefix__-css_selector" type="text" value="" maxlength="500" required>
+                </div>
             </div>
             <div class="col-md-2 align-self-center">
                 <button type="button" class="btn btn-danger btn-sm remove-selector">Xóa</button>
@@ -67,87 +135,90 @@
 {% endblock %}
 
 {% block body_scripts %}
-{{ super() }} {# Kế thừa script từ base.html nếu có #}
+{{ super() }}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const selectorsContainer = document.getElementById('selectors-container');
     const addSelectorButton = document.getElementById('add-selector');
     const selectorTemplate = document.getElementById('selector-template');
 
-    // --- Xử lý thêm Selector ---
     addSelectorButton.addEventListener('click', function() {
         const index = selectorsContainer.querySelectorAll('.selector-group').length;
-        // Clone template
         const newSelectorHTML = selectorTemplate.innerHTML.replace(/__prefix__/g, index);
         const newSelectorDiv = document.createElement('div');
-        newSelectorDiv.innerHTML = newSelectorHTML;
-        // Append vào container (lấy phần tử đầu tiên bên trong div vừa tạo)
-        selectorsContainer.appendChild(newSelectorDiv.firstElementChild);
+        const newSelectorGroup = new DOMParser().parseFromString(newSelectorHTML, 'text/html').body.firstChild;
+        if (newSelectorGroup) {
+            while (newSelectorGroup.firstChild && newSelectorGroup.firstChild.nodeType === Node.TEXT_NODE) {
+                 newSelectorGroup.removeChild(newSelectorGroup.firstChild);
+            }
+             while (newSelectorGroup.lastChild && newSelectorGroup.lastChild.nodeType === Node.TEXT_NODE) {
+                 newSelectorGroup.removeChild(newSelectorGroup.lastChild);
+            }
+            selectorsContainer.appendChild(newSelectorGroup);
+        }
     });
 
-    // --- Xử lý xóa Selector ---
-    // Dùng event delegation để xử lý nút xóa trên các element được thêm động
     selectorsContainer.addEventListener('click', function(event) {
         if (event.target.classList.contains('remove-selector')) {
-            // Tìm đến div.selector-group cha gần nhất và xóa nó
             const selectorGroup = event.target.closest('.selector-group');
             if (selectorGroup) {
                 selectorGroup.remove();
-                // Cập nhật lại index cho các selector còn lại để đảm bảo tính liên tục
                 updateSelectorIndices();
             }
         }
     });
 
-    // --- Hàm cập nhật lại index của các selector ---
     function updateSelectorIndices() {
         const selectorGroups = selectorsContainer.querySelectorAll('.selector-group');
         selectorGroups.forEach((group, newIndex) => {
-            const inputs = group.querySelectorAll('input, select, textarea, label'); // Lấy cả label để cập nhật 'for'
-            inputs.forEach(input => {
-                // Cập nhật name và id
-                if (input.name) {
-                    input.name = input.name.replace(/selectors-\d+-/, `selectors-${newIndex}-`);
-                }
-                if (input.id) {
-                    input.id = input.id.replace(/selectors-\d+-/, `selectors-${newIndex}-`);
-                }
-                // Cập nhật thuộc tính 'for' của label
-                if (input.tagName === 'LABEL' && input.htmlFor) {
-                     input.htmlFor = input.htmlFor.replace(/selectors-\d+-/, `selectors-${newIndex}-`);
-                }
+            const inputsAndLabels = group.querySelectorAll('input, label');
+            inputsAndLabels.forEach(el => {
+                const oldId = el.id;
+                const oldName = el.name;
+                const oldFor = el.htmlFor;
+
+                if (oldId) el.id = oldId.replace(/selectors-\d+-/, `selectors-${newIndex}-`);
+                if (oldName) el.name = oldName.replace(/selectors-\d+-/, `selectors-${newIndex}-`);
+                if (oldFor) el.htmlFor = oldFor.replace(/selectors-\d+-/, `selectors-${newIndex}-`);
             });
         });
     }
 
-    // --- Xử lý hiển thị/ẩn trường giá trị lập lịch ---
     const scheduleTypeSelect = document.getElementById('schedule_type');
     const scheduleValueDiv = document.getElementById('schedule-value-div');
-    const scheduleValueInput = document.getElementById('schedule_value'); // Lấy input để có thể xóa value khi ẩn
+    const scheduleValueInput = document.getElementById('schedule_value');
 
     function toggleScheduleValue() {
+        if (!scheduleTypeSelect || !scheduleValueDiv || !scheduleValueInput) return;
+
         if (scheduleTypeSelect.value === 'none') {
             scheduleValueDiv.style.display = 'none';
-            scheduleValueInput.value = ''; // Xóa giá trị khi ẩn đi
-            scheduleValueInput.required = false; // Không bắt buộc nhập
+            scheduleValueInput.value = '';
+            scheduleValueInput.required = false;
         } else {
             scheduleValueDiv.style.display = 'block';
-             scheduleValueInput.required = true; // Bắt buộc nhập khi hiện ra
-             // Cập nhật placeholder hoặc label nếu cần dựa trên scheduleTypeSelect.value
-             // Ví dụ:
-             // let placeholderText = 'Nhập giá trị...';
-             // if (scheduleTypeSelect.value === 'interval') placeholderText = 'Nhập số giờ (vd: 2)';
-             // if (scheduleTypeSelect.value === 'cron') placeholderText = 'Nhập cron expression (vd: 0 9 * * *)';
-             // scheduleValueInput.placeholder = placeholderText;
-             // document.querySelector('label[for="schedule_value"]').textContent = `Giá trị (${scheduleTypeSelect.value})`; // Cập nhật label
+            scheduleValueInput.required = true;
+            let placeholderText = 'Ví dụ: 2 (cho interval giờ) hoặc 0 9 * * * (cho cron)';
+            let labelText = 'Giá trị lập lịch';
+            if (scheduleTypeSelect.value === 'interval') {
+                placeholderText = 'Nhập số giờ (ví dụ: 2)';
+                labelText = 'Số giờ (Interval)';
+            }
+            if (scheduleTypeSelect.value === 'cron') {
+                placeholderText = 'Nhập cron expression (ví dụ: 0 9 * * *)';
+                 labelText = 'Cron Expression';
+            }
+            scheduleValueInput.placeholder = placeholderText;
+            const labelElement = scheduleValueDiv.querySelector('label[for="schedule_value"]');
+            if(labelElement) labelElement.textContent = labelText;
         }
     }
 
-    scheduleTypeSelect.addEventListener('change', toggleScheduleValue);
-    // Gọi lần đầu khi load trang
-    toggleScheduleValue();
+    if (scheduleTypeSelect) {
+        scheduleTypeSelect.addEventListener('change', toggleScheduleValue);
+        toggleScheduleValue();
+    }
 
-     // Khởi tạo lại index khi trang load (quan trọng khi có lỗi validation và render lại form)
     updateSelectorIndices();
 
 });

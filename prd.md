@@ -33,9 +33,9 @@ Mục đích chính là tạo ra một công cụ mạnh mẽ và linh hoạt, k
 
 Khi người dùng truy cập vào địa chỉ web của ứng dụng, họ sẽ được đưa đến trang **Dashboard chính** mà không cần đăng nhập. Giao diện chính bao gồm một **Thanh điều hướng bên trái (Sidebar)** cố định và một **Vùng nội dung chính (Main Content Area)**. Sidebar chứa các liên kết: **"Dashboard"**, **"Tạo tác vụ mới"**, **"Danh sách tác vụ"**, và **"Hỏi Đáp Chatbot"**.
 
-Mặc định, trang **Dashboard** được hiển thị trong Vùng nội dung chính, cung cấp cái nhìn tổng quan nhanh với các thẻ thống kê (Tổng số tác vụ, Số tác vụ hoàn thành, Số tác vụ đang chạy, Số tác vụ lỗi, v.v.) và một nút lớn **"+ Tạo tác vụ Scraping mới"**.
+Mặc định, trang **Dashboard** được hiển thị trong Vùng nội dung chính, cung cấp cái nhìn tổng quan nhanh với các thẻ thống kê (Tổng số tác vụ, Số tác vụ hoàn thành, Số tác vụ đang chạy, Số tác vụ lỗi, v.v.) và một nút lớn **"Tạo tác vụ Scraping mới"**.
 
-Nhấn vào **"Tạo tác vụ mới"** trên Sidebar hoặc nút **"+ Tạo tác vụ Scraping mới"** trên Dashboard sẽ tải trang tạo tác vụ vào Vùng nội dung chính. Trang này có một form chi tiết hơn:
+Nhấn vào **"Tạo tác vụ mới"** trên Sidebar hoặc nút **"Tạo tác vụ Scraping mới"** trên Dashboard sẽ tải trang tạo tác vụ vào Vùng nội dung chính. Trang này có một form chi tiết hơn:
 *   **"Tên tác vụ"** (ô input text, bắt buộc).
 *   **"URL mục tiêu"** (ô input url, bắt buộc, có validation).
 *   **"Cấu hình Selectors"**: Một khu vực cho phép người dùng thêm nhiều cặp "Tên dữ liệu" (ví dụ: "Tiêu đề bài viết", "Giá sản phẩm") và "CSS Selector" tương ứng (ô input text, bắt buộc cho mỗi cặp). Có nút "Thêm Selector" để thêm dòng mới và nút "Xóa" cho mỗi dòng.

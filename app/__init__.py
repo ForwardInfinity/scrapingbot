@@ -35,6 +35,16 @@ def create_app(config_name='default'):
     db.init_app(app)
     csrf.init_app(app)
 
+    # --- Thêm logging kiểm tra CSRF --- 
+    secret_key_source = 'default weak key'
+    if 'SECRET_KEY' in os.environ:
+        secret_key_source = 'loaded from .env'
+    elif app.config.get('SECRET_KEY') != 'you-will-never-guess':
+        secret_key_source = 'set directly in config' 
+    app.logger.info(f"SECRET_KEY status: {secret_key_source}")
+    app.logger.info(f"WTF_CSRF_ENABLED: {app.config.get('WTF_CSRF_ENABLED', True)} (Default is True)")
+    # ---------------------------------
+
     # Cấu hình logging cơ bản (ghi ra console)
     # Cấu hình logging chi tiết hơn sẽ thực hiện ở Phase 7
     if not app.debug and not app.testing:
